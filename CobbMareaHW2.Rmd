@@ -1,0 +1,64 @@
+---
+title: "BIOST 578 Homework 1"
+author: "Marea Cobb"
+date: "February 9, 2015"
+reviewer: Gloria Chi""
+---
+Loads specific libraries
+
+
+```r
+library("knitr")
+library(GEOmetadb)
+library(data.table)
+```
+
+```r
+## This will download the entire database, so can be slow
+if (!file.exists("GEOmetadb.sqlite")) {
+  # Download database only if it's not done already
+  getSQLiteFile()
+}
+
+# Connects to GEOmetadb
+geo_con <- dbConnect(SQLite(), "GEOmetadb.sqlite")
+
+
+# Queries the database for gene expression data submitted by Yale using the Illumina platform looking at HCV using sqlite..
+query<-"SELECT gse.title, gse.gse, gpl.gpl, gpl.manufacturer, gpl.title
+        FROM (gse JOIN gse_gpl ON gse.gse=gse_gpl.gse) j
+        JOIN gpl ON j.gpl=gpl.gpl 
+        WHERE gpl.manufacturer LIKE '%Illumina%'
+        AND gse.contact LIKE '%yale%'
+        AND gse.title LIKE '%HCV%';"
+
+# Queries the database for gene expression data submitted by Yale using the Illumina platform looking at HCV using data.tables instead of sqlite.
+res <- dbGetQuery(geo_con, query)
+res
+```
+
+```
+##                          gse.title                                      gse.gse     gpl.gpl   gpl.manufacturer                     gpl.title
+## 1 The blood transcriptional signature of chronic HCV [Illumina data]   GSE40223    GPL10558    Illumina Inc.     Illumina HumanHT-12 V4.0 expression beadchip
+## 2                 The blood transcriptional signature of chronic HCV   GSE40224    GPL10558    Illumina Inc.     Illumina HumanHT-12 V4.0 expression beadchip
+```
+
+```r
+#Queries the datab
+query_dt<-merge(data.table(dbGetQuery(geo_con, 
+                      "SELECT gse FROM gse WHERE contact LIKE '%yale%' AND title LIKE '%HCV%';"), key="gse"), (merge(data.table(dbGetQuery(geo_con,
+                      "SELECT gpl, manufacturer, title FROM gpl WHERE manufacturer LIKE '%Illumina%';"), key="gpl"), data.table(dbGetQuery(geo_con, 
+                      "SELECT * FROM gse_gpl;"), key=c("gse", "gpl")), by="gpl")), by="gse")
+query_dt
+```
+
+```
+##       gse      gpl    manufacturer                 title
+## 1: GSE40223 GPL10558  Illumina Inc. Illumina HumanHT-12 V4.0 expression beadchip
+## 2: GSE40224 GPL10558  Illumina Inc. Illumina HumanHT-12 V4.0 expression beadchip
+```
+
+```r
+# Disconnects from the database
+dbDisconnect(geo_con)
+```
