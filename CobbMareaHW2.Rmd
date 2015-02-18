@@ -7,13 +7,13 @@ reviewer: Gloria Chi""
 Loads specific libraries
 
 
-```r
+```{r}
 library("knitr")
 library(GEOmetadb)
 library(data.table)
 ```
 
-```r
+```{r}
 ## This will download the entire database, so can be slow
 if (!file.exists("GEOmetadb.sqlite")) {
   # Download database only if it's not done already
@@ -25,12 +25,12 @@ geo_con <- dbConnect(SQLite(), "GEOmetadb.sqlite")
 
 
 # Queries the database for gene expression data submitted by Yale using the Illumina platform looking at HCV using sqlite..
-query<-"SELECT gse.title, gse.gse, gpl.gpl, gpl.manufacturer, gpl.title
+query<-"SELECT gse.title, gse.gse, gpl.gpl, gpl.manufacturer, gpl.description, gpl.title
         FROM (gse JOIN gse_gpl ON gse.gse=gse_gpl.gse) j
         JOIN gpl ON j.gpl=gpl.gpl 
         WHERE gpl.manufacturer LIKE '%Illumina%'
         AND gse.contact LIKE '%yale%'
-        AND gse.title LIKE '%HCV%';"
+        AND (gse.title LIKE '%HCV%' OR gse.summary LIKE '%HCV%');"
 
 # Queries the database for gene expression data submitted by Yale using the Illumina platform looking at HCV using data.tables instead of sqlite.
 res <- dbGetQuery(geo_con, query)
@@ -38,27 +38,49 @@ res
 ```
 
 ```
-##                          gse.title                                      gse.gse     gpl.gpl   gpl.manufacturer                     gpl.title
-## 1 The blood transcriptional signature of chronic HCV [Illumina data]   GSE40223    GPL10558    Illumina Inc.     Illumina HumanHT-12 V4.0 expression beadchip
-## 2                 The blood transcriptional signature of chronic HCV   GSE40224    GPL10558    Illumina Inc.     Illumina HumanHT-12 V4.0 expression beadchip
+##                                                                                                          gse.title
+## 1                                               The blood transcriptional signature of chronic HCV [Illumina data]
+## 2                                                               The blood transcriptional signature of chronic HCV
+## 3 Impaired TLR3-mediated immune responses from macrophages of patients chronically infected with Hepatitis C virus
+##    gse.gse  gpl.gpl gpl.manufacturer
+## 1 GSE40223 GPL10558    Illumina Inc.
+## 2 GSE40224 GPL10558    Illumina Inc.
+## 3 GSE40812 GPL10558    Illumina Inc.
+##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       gpl.description
+## 1 The HumanHT-12 v4 Expression BeadChip provides high throughput processing of 12 samples per BeadChip without the need for expensive, specialized automation. The BeadChip is designed to support flexible usage across a wide-spectrum of experiments.;\t;\tThe updated content on the HumanHT-12 v4 Expression BeadChips provides more biologically meaningful results through genome-wide transcriptional coverage of well-characterized genes, gene candidates, and splice variants.;\t;\tEach array on the HumanHT-12 v4 Expression BeadChip targets more than 31,000 annotated genes with more than 47,000 probes derived from the National Center for Biotechnology Information Reference Sequence (NCBI) RefSeq Release 38 (November 7, 2009) and other sources.;\t;\tPlease use the GEO Data Submission Report Plug-in v1.0 for Gene Expression which may be downloaded from https://icom.illumina.com/icom/software.ilmn?id=234 to format the normalized and raw data.  These should be submitted as part of a GEOarchive.  Instructions for assembling a GEOarchive may be found at http://www.ncbi.nlm.nih.gov/projects/geo/info/spreadsheet.html;\t;\tOctober 11, 2012: annotation table updated with HumanHT-12_V4_0_R2_15002873_B.txt
+## 2 The HumanHT-12 v4 Expression BeadChip provides high throughput processing of 12 samples per BeadChip without the need for expensive, specialized automation. The BeadChip is designed to support flexible usage across a wide-spectrum of experiments.;\t;\tThe updated content on the HumanHT-12 v4 Expression BeadChips provides more biologically meaningful results through genome-wide transcriptional coverage of well-characterized genes, gene candidates, and splice variants.;\t;\tEach array on the HumanHT-12 v4 Expression BeadChip targets more than 31,000 annotated genes with more than 47,000 probes derived from the National Center for Biotechnology Information Reference Sequence (NCBI) RefSeq Release 38 (November 7, 2009) and other sources.;\t;\tPlease use the GEO Data Submission Report Plug-in v1.0 for Gene Expression which may be downloaded from https://icom.illumina.com/icom/software.ilmn?id=234 to format the normalized and raw data.  These should be submitted as part of a GEOarchive.  Instructions for assembling a GEOarchive may be found at http://www.ncbi.nlm.nih.gov/projects/geo/info/spreadsheet.html;\t;\tOctober 11, 2012: annotation table updated with HumanHT-12_V4_0_R2_15002873_B.txt
+## 3 The HumanHT-12 v4 Expression BeadChip provides high throughput processing of 12 samples per BeadChip without the need for expensive, specialized automation. The BeadChip is designed to support flexible usage across a wide-spectrum of experiments.;\t;\tThe updated content on the HumanHT-12 v4 Expression BeadChips provides more biologically meaningful results through genome-wide transcriptional coverage of well-characterized genes, gene candidates, and splice variants.;\t;\tEach array on the HumanHT-12 v4 Expression BeadChip targets more than 31,000 annotated genes with more than 47,000 probes derived from the National Center for Biotechnology Information Reference Sequence (NCBI) RefSeq Release 38 (November 7, 2009) and other sources.;\t;\tPlease use the GEO Data Submission Report Plug-in v1.0 for Gene Expression which may be downloaded from https://icom.illumina.com/icom/software.ilmn?id=234 to format the normalized and raw data.  These should be submitted as part of a GEOarchive.  Instructions for assembling a GEOarchive may be found at http://www.ncbi.nlm.nih.gov/projects/geo/info/spreadsheet.html;\t;\tOctober 11, 2012: annotation table updated with HumanHT-12_V4_0_R2_15002873_B.txt
+##                                      gpl.title
+## 1 Illumina HumanHT-12 V4.0 expression beadchip
+## 2 Illumina HumanHT-12 V4.0 expression beadchip
+## 3 Illumina HumanHT-12 V4.0 expression beadchip
 ```
 
-```r
+```{r}
 #Queries the datab
 query_dt<-merge(data.table(dbGetQuery(geo_con, 
-                      "SELECT gse FROM gse WHERE contact LIKE '%yale%' AND title LIKE '%HCV%';"), key="gse"), (merge(data.table(dbGetQuery(geo_con,
-                      "SELECT gpl, manufacturer, title FROM gpl WHERE manufacturer LIKE '%Illumina%';"), key="gpl"), data.table(dbGetQuery(geo_con, 
+                      "SELECT gse FROM gse WHERE contact LIKE '%yale%' AND (title LIKE '%HCV%' OR summary LIKE '%HCV%');"), key="gse"), (merge(data.table(dbGetQuery(geo_con,
+                      "SELECT gpl, manufacturer, description, title FROM gpl WHERE manufacturer LIKE '%Illumina%';"), key="gpl"), data.table(dbGetQuery(geo_con, 
                       "SELECT * FROM gse_gpl;"), key=c("gse", "gpl")), by="gpl")), by="gse")
 query_dt
 ```
 
 ```
-##       gse      gpl    manufacturer                 title
-## 1: GSE40223 GPL10558  Illumina Inc. Illumina HumanHT-12 V4.0 expression beadchip
-## 2: GSE40224 GPL10558  Illumina Inc. Illumina HumanHT-12 V4.0 expression beadchip
+##         gse      gpl  manufacturer
+## 1: GSE40223 GPL10558 Illumina Inc.
+## 2: GSE40224 GPL10558 Illumina Inc.
+## 3: GSE40812 GPL10558 Illumina Inc.
+##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            description
+## 1: The HumanHT-12 v4 Expression BeadChip provides high throughput processing of 12 samples per BeadChip without the need for expensive, specialized automation. The BeadChip is designed to support flexible usage across a wide-spectrum of experiments.;\t;\tThe updated content on the HumanHT-12 v4 Expression BeadChips provides more biologically meaningful results through genome-wide transcriptional coverage of well-characterized genes, gene candidates, and splice variants.;\t;\tEach array on the HumanHT-12 v4 Expression BeadChip targets more than 31,000 annotated genes with more than 47,000 probes derived from the National Center for Biotechnology Information Reference Sequence (NCBI) RefSeq Release 38 (November 7, 2009) and other sources.;\t;\tPlease use the GEO Data Submission Report Plug-in v1.0 for Gene Expression which may be downloaded from https://icom.illumina.com/icom/software.ilmn?id=234 to format the normalized and raw data.  These should be submitted as part of a GEOarchive.  Instructions for assembling a GEOarchive may be found at http://www.ncbi.nlm.nih.gov/projects/geo/info/spreadsheet.html;\t;\tOctober 11, 2012: annotation table updated with HumanHT-12_V4_0_R2_15002873_B.txt
+## 2: The HumanHT-12 v4 Expression BeadChip provides high throughput processing of 12 samples per BeadChip without the need for expensive, specialized automation. The BeadChip is designed to support flexible usage across a wide-spectrum of experiments.;\t;\tThe updated content on the HumanHT-12 v4 Expression BeadChips provides more biologically meaningful results through genome-wide transcriptional coverage of well-characterized genes, gene candidates, and splice variants.;\t;\tEach array on the HumanHT-12 v4 Expression BeadChip targets more than 31,000 annotated genes with more than 47,000 probes derived from the National Center for Biotechnology Information Reference Sequence (NCBI) RefSeq Release 38 (November 7, 2009) and other sources.;\t;\tPlease use the GEO Data Submission Report Plug-in v1.0 for Gene Expression which may be downloaded from https://icom.illumina.com/icom/software.ilmn?id=234 to format the normalized and raw data.  These should be submitted as part of a GEOarchive.  Instructions for assembling a GEOarchive may be found at http://www.ncbi.nlm.nih.gov/projects/geo/info/spreadsheet.html;\t;\tOctober 11, 2012: annotation table updated with HumanHT-12_V4_0_R2_15002873_B.txt
+## 3: The HumanHT-12 v4 Expression BeadChip provides high throughput processing of 12 samples per BeadChip without the need for expensive, specialized automation. The BeadChip is designed to support flexible usage across a wide-spectrum of experiments.;\t;\tThe updated content on the HumanHT-12 v4 Expression BeadChips provides more biologically meaningful results through genome-wide transcriptional coverage of well-characterized genes, gene candidates, and splice variants.;\t;\tEach array on the HumanHT-12 v4 Expression BeadChip targets more than 31,000 annotated genes with more than 47,000 probes derived from the National Center for Biotechnology Information Reference Sequence (NCBI) RefSeq Release 38 (November 7, 2009) and other sources.;\t;\tPlease use the GEO Data Submission Report Plug-in v1.0 for Gene Expression which may be downloaded from https://icom.illumina.com/icom/software.ilmn?id=234 to format the normalized and raw data.  These should be submitted as part of a GEOarchive.  Instructions for assembling a GEOarchive may be found at http://www.ncbi.nlm.nih.gov/projects/geo/info/spreadsheet.html;\t;\tOctober 11, 2012: annotation table updated with HumanHT-12_V4_0_R2_15002873_B.txt
+##                                           title
+## 1: Illumina HumanHT-12 V4.0 expression beadchip
+## 2: Illumina HumanHT-12 V4.0 expression beadchip
+## 3: Illumina HumanHT-12 V4.0 expression beadchip
 ```
 
-```r
+```{r}
 # Disconnects from the database
 dbDisconnect(geo_con)
 ```
